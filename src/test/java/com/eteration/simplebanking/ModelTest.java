@@ -2,9 +2,11 @@ package com.eteration.simplebanking;
 
 
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.eteration.simplebanking.model.Account;
+import com.eteration.simplebanking.model.BillPaymentTransaction;
 import com.eteration.simplebanking.model.DepositTransaction;
 import com.eteration.simplebanking.model.InsufficientBalanceException;
 import com.eteration.simplebanking.model.WithdrawalTransaction;
@@ -67,5 +69,15 @@ public class ModelTest {
 		account.post(withdrawalTrx);
 		assertTrue(account.getBalance() == 40);
 		assertTrue(account.getTransactions().size() == 2);
+	}
+
+	@Test
+	void testAllTransaction() throws InsufficientBalanceException {
+		Account account = new Account("Jim", "12345");
+		account.post(new DepositTransaction(1000));
+		account.post(new WithdrawalTransaction(200));
+		account.post(new BillPaymentTransaction("Vodafone", "5423345566", 96.50));
+		assertEquals(703.50, account.getBalance(), 0.0001);
+
 	}
 }

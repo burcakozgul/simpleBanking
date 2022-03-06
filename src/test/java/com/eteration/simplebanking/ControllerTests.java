@@ -2,11 +2,13 @@ package com.eteration.simplebanking;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+import java.util.UUID;
 import com.eteration.simplebanking.controller.AccountController;
-import com.eteration.simplebanking.controller.TransactionStatus;
+import com.eteration.simplebanking.model.TransactionStatus;
 import com.eteration.simplebanking.model.Account;
 import com.eteration.simplebanking.model.DepositTransaction;
 import com.eteration.simplebanking.model.InsufficientBalanceException;
@@ -41,10 +43,11 @@ class ControllerTests  {
     throws Exception {
         
         Account account = new Account("Kerem Karaca", "17892");
+        TransactionStatus transactionStatus = new TransactionStatus("OK");
 
         doReturn(account).when(service).findAccount( "17892");
+        doReturn(transactionStatus).when(service).credit("17892", new DepositTransaction(1000.0));
         ResponseEntity<TransactionStatus> result = controller.credit( "17892", new DepositTransaction(1000.0));
-        verify(service, times(1)).findAccount("17892");
         assertEquals("OK", result.getBody().getStatus());
     }
 
@@ -53,14 +56,15 @@ class ControllerTests  {
     throws Exception {
         
         Account account = new Account("Kerem Karaca", "17892");
+        TransactionStatus transactionStatus = new TransactionStatus("OK");
 
         doReturn(account).when(service).findAccount( "17892");
+        doReturn(transactionStatus).when(service).credit("17892", new DepositTransaction(1000.0));
+        doReturn(transactionStatus).when(service).debit("17892", new WithdrawalTransaction(50.0));
         ResponseEntity<TransactionStatus> result = controller.credit( "17892", new DepositTransaction(1000.0));
         ResponseEntity<TransactionStatus> result2 = controller.debit( "17892", new WithdrawalTransaction(50.0));
-        verify(service, times(2)).findAccount("17892");
         assertEquals("OK", result.getBody().getStatus());
         assertEquals("OK", result2.getBody().getStatus());
-        assertEquals(950.0, account.getBalance(),0.001);
     }
 
     @Test
@@ -68,12 +72,13 @@ class ControllerTests  {
     throws Exception {
         Assertions.assertThrows( InsufficientBalanceException.class, () -> {
             Account account = new Account("Kerem Karaca", "17892");
+            TransactionStatus transactionStatus = new TransactionStatus("OK");
 
             doReturn(account).when(service).findAccount( "17892");
+            doReturn(transactionStatus).when(service).credit("17892", new DepositTransaction(1000.0));
+            doThrow(InsufficientBalanceException.class).when(service).debit("17892", new WithdrawalTransaction(5000.0));
             ResponseEntity<TransactionStatus> result = controller.credit( "17892", new DepositTransaction(1000.0));
             assertEquals("OK", result.getBody().getStatus());
-            assertEquals(1000.0, account.getBalance(),0.001);
-            verify(service, times(1)).findAccount("17892");
 
             ResponseEntity<TransactionStatus> result2 = controller.debit( "17892", new WithdrawalTransaction(5000.0));
         });
@@ -87,7 +92,6 @@ class ControllerTests  {
 
         doReturn(account).when(service).findAccount( "17892");
         ResponseEntity<Account> result = controller.getAccount( "17892");
-        verify(service, times(1)).findAccount("17892");
         assertEquals(account, result.getBody());
     }
 

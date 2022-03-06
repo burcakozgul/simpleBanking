@@ -1,7 +1,66 @@
 package com.eteration.simplebanking.model;
 
 
-// This class is a place holder you can change the complete implementation
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import javax.persistence.CascadeType;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.Data;
 
+@Data
+@Entity
+@Table(name = "account")
 public class Account {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @JsonIgnore
+    private Long id;
+    private String owner;
+    private String accountNumber;
+    private double balance;
+    private LocalDateTime createDate;
+    @OneToMany(mappedBy = "account", cascade = CascadeType.ALL)
+    private List<Transaction> transactions = new ArrayList<>();
+
+    public Account(String owner, String accountNumber) {
+        this.owner = owner;
+        this.accountNumber = accountNumber;
+    }
+
+    public Account() {
+
+    }
+
+    public void deposit(int amount) {
+        balance += amount;
+    }
+
+    public void withdraw(int amount) throws InsufficientBalanceException {
+        if (balance < amount) {
+            throw new InsufficientBalanceException("insufficient balance");
+        }
+        balance -= amount;
+    }
+
+    public void post(Transaction transaction) throws InsufficientBalanceException {
+        if (transaction instanceof DepositTransaction) {
+            balance += transaction.getAmount();
+        } else if (transaction instanceof WithdrawalTransaction ||
+            transaction instanceof BillPaymentTransaction) {
+            if (balance < transaction.getAmount()) {
+                throw new InsufficientBalanceException("insufficient balance");
+            }
+            balance -= transaction.getAmount();
+        }
+        getTransactions().add(transaction);
+        transaction.setAccount(this);
+    }
 }
