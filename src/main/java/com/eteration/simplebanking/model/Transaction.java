@@ -51,4 +51,6 @@ public abstract class Transaction {
         this.account = account;
         this.approvalCode = approvalCode;
     }
+
+    public abstract double calculateBalance();
 }

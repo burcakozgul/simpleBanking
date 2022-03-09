@@ -9,8 +9,12 @@ import lombok.Data;
 @Entity
 @DiscriminatorValue("WithdrawalTransaction")
 public class WithdrawalTransaction extends Transaction {
+
+    private double amount;
+
     public WithdrawalTransaction(double amount) {
         super(amount);
+        this.amount = amount;
     }
 
     public WithdrawalTransaction() {
@@ -19,6 +23,12 @@ public class WithdrawalTransaction extends Transaction {
 
     public WithdrawalTransaction(LocalDateTime date, double amount, Account account, String approvalCode) {
         super(date, amount, account, approvalCode);
+        this.amount = amount;
+    }
+
+    @Override
+    public double calculateBalance() {
+        return -amount;
     }
 }
 

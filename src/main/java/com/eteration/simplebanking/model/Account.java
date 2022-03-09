@@ -51,14 +51,9 @@ public class Account {
     }
 
     public void post(Transaction transaction) throws InsufficientBalanceException {
-        if (transaction instanceof DepositTransaction) {
-            balance += transaction.getAmount();
-        } else if (transaction instanceof WithdrawalTransaction ||
-            transaction instanceof BillPaymentTransaction) {
-            if (balance < transaction.getAmount()) {
-                throw new InsufficientBalanceException("insufficient balance");
-            }
-            balance -= transaction.getAmount();
+        balance += transaction.calculateBalance();
+        if (balance < 0) {
+            throw new InsufficientBalanceException("insufficient balance");
         }
         getTransactions().add(transaction);
         transaction.setAccount(this);
